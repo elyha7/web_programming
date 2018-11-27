@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta content="Display Webcam Stream" name="title">
+<title>Display Webcam Stream</title>
+  
+<style>
+.container{
+    position: relative;
+    width: 940px;
+    height: 480px;
+    background-color:aquamarine;
+    border: 10px rgb(247, 250, 57) solid;
+}
+.center {
+    position: absolute;
+    left: 30%;
+    bottom: 5%;
+    width: 100px;
+    background-color: black;
+    color: white;
+}
+#my_camera {
+    position: absolute;
+    width: 640px;
+    height: 480px;
+}
+
+#info_div {
+    position: absolute;
+    background-color: white;
+    top: 0px;
+    right: 0px;
+    width: 250px;
+    border: 3px solid #73AD21;
+}
+
+
+</style>
+</head>
+
+
+<body>
+    <script>
+        function add_to_base() {
+            Webcam.snap( function(data_uri) {
+                var tmp1 = data_uri;
+                var url = '/add_face';
+                var extra_param = document.getElementById("FirstName").value;
+                function process_func(code, text) {
+                    if (code!=200) {
+                        alert(text);
+                    }
+                    else{
+                        document.getElementById("test1").innerHTML = text;}
+                };
+                console.log(url)
+                Webcam.upload( tmp1, url, process_func,extra_param)
+            } );
+        }
+        function find_face() {
+            Webcam.snap( function(data_uri) {
+                var tmp1 = data_uri;
+                var url = '/find_face';
+                function process_func(code, text) {
+                    if (code!=200) {
+                        alert(text);
+                    }
+                    else{
+                        document.getElementById("test1").innerHTML = text;}
+                };
+                console.log(url)
+                Webcam.upload( tmp1, url, process_func)
+            } );
+        }
+    </script>
+    <script src="webcamjs/webcam.js"></script>
+    <div class="container">
+        <div id="my_camera">
+            
+        </div>
+        <div id="test1" class="center"></div>
+        <div id="info_div">
+            <form>
+                First name: <input type="text" width ="30px" id="FirstName" name="FirstName" value = "Artem"><br>
+            </form>
+            <input type="button" onclick=add_to_base() value="Добавить лицо"/>
+            <input type="button" onclick=find_face() value="Найти в базе"/>
+            <form action="/clear_db" method="get">
+                <input type="submit" value="Очистить базу" onclick="alert('База очищена')">
+            </form>
+        </div>
+    </div>
+    
+    
+
+    
+    <script>
+        Webcam.attach( '#my_camera' );    
+    </script>
+</body>
+</html>
+
+
