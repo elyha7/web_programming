@@ -3,24 +3,43 @@
 <head>
 <meta charset="utf-8">
 <meta content="Display Webcam Stream" name="title">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<!--Import materialize.css-->
+<link type="text/css" rel="stylesheet" href="css/materialize.min.css"  media="screen,projection"/>
 <title>Display Webcam Stream</title>
   
 <style>
 .container{
     position: relative;
-    width: 940px;
-    height: 480px;
-    background-color:aquamarine;
-    border: 10px rgb(247, 250, 57) solid;
-}
-.center {
-    position: absolute;
-    left: 30%;
-    bottom: 5%;
-    width: 100px;
+    margin: auto;
+    width: 980px;
+    height: 500px;
     background-color: black;
-    color: white;
+    border: 10px #ffc107 solid;
 }
+.container .canvcontainer{
+    position: absolute;
+    width: 320px;
+    height: 280px;
+    background-color: black;
+    bottom: 0px;
+    right: 0px;
+}
+.canvcontainer .canvas{
+    position: absolute;
+    background-color: black;
+    top: 0px;
+}
+.canvcontainer .content {
+  position: absolute; /* Position the background text */
+  bottom: 0; /* At the bottom. Use top:0 to append it to the top */
+  color: white;
+  background-color: black;
+  width: 100%; /* Full width */
+  padding-bottom: 5%;
+  text-align: center;
+}
+
 #my_camera {
     position: absolute;
     width: 640px;
@@ -32,73 +51,174 @@
     background-color: white;
     top: 0px;
     right: 0px;
-    width: 250px;
-    border: 3px solid #73AD21;
+    width: 320px;
+    display: block;
 }
 
+.my_button{
+    width: 100%;
+    margin-bottom: 0px;
+}
 
 </style>
 </head>
 
 
 <body>
-    <script>
-        function add_to_base() {
-            Webcam.snap( function(data_uri) {
-                var tmp1 = data_uri;
-                var url = '/add_face';
-                var extra_param = document.getElementById("FirstName").value;
-                function process_func(code, text) {
-                    if (code!=200) {
-                        alert(text);
-                    }
-                    else{
-                        document.getElementById("test1").innerHTML = text;}
-                };
-                console.log(url)
-                Webcam.upload( tmp1, url, process_func,extra_param)
-            } );
-        }
-        function find_face() {
-            Webcam.snap( function(data_uri) {
-                var tmp1 = data_uri;
-                var url = '/find_face';
-                function process_func(code, text) {
-                    if (code!=200) {
-                        alert(text);
-                    }
-                    else{
-                        document.getElementById("test1").innerHTML = text;}
-                };
-                console.log(url)
-                Webcam.upload( tmp1, url, process_func)
-            } );
-        }
-    </script>
-    <script src="webcamjs/webcam.js"></script>
     <div class="container">
-        <div id="my_camera">
-            
+        <video id="my_camera" autoplay></video>
+        <div id='canvcontainer' class="canvcontainer" hidden>
+            <canvas id="canvas" class="canvas" width="320" height="240"></canvas>
+            <div id="canvcontent" class="content">Привет</div>
         </div>
-        <div id="test1" class="center"></div>
         <div id="info_div">
-            <form>
-                First name: <input type="text" width ="30px" id="FirstName" name="FirstName" value = "Artem"><br>
-            </form>
-            <input type="button" onclick=add_to_base() value="Добавить лицо"/>
-            <input type="button" onclick=find_face() value="Найти в базе"/>
-            <form action="/clear_db" method="get">
-                <input type="submit" value="Очистить базу" onclick="alert('База очищена')">
+            <!-- <input class="btn waves-effect waves-light" id="FirstName" name="action" value = "Artem"> -->
+            <div class="row amber-text black my_button">
+                <div class="input-field col s12 amber-text">
+                    <i class="material-icons prefix amber-text">face</i>
+                    <input id="icon_prefix" type="text" class="validate white-text">
+                    <label for="icon_prefix" class="amber-text">Ввведите имя</label>
+                </div>
+            </div>   
+            <button class="btn waves-effect waves-red amber my_button" id="button1"> Добавить в базу
+                <i class="material-icons left">add_circle_outline</i>
+            </button>  
+            <button class="btn waves-effect waves-red amber my_button" id="button2" onclick=process_face()> Найти в базе
+                <i class="material-icons left">search</i>
+            </button>
+            <button class="btn waves-effect waves-red amber my_button" type="submit" name="action" onclick=clear_db() width="100px">Очистить базу
+                <i class="material-icons left">delete</i>
+            </button>
             </form>
         </div>
+        
     </div>
-    
-    
-
-    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script>
-        Webcam.attach( '#my_camera' );    
+            button1.onclick = function() {
+              var name = document.getElementById("icon_prefix").value;
+              console.log(name)
+              process_face(name);
+            };
     </script>
+    <script>
+        function convertCanvasToImage(canvas) {
+            var image = new Image();
+            image.src = canvas.toDataURL("image/png");
+            return image.src;
+        }
+        function b64toBlob(b64Data, contentType, sliceSize) {
+            contentType = contentType || '';
+            sliceSize = sliceSize || 512;
+
+            var byteCharacters = atob(b64Data);
+            var byteArrays = [];
+
+            for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                var slice = byteCharacters.slice(offset, offset + sliceSize);
+
+                var byteNumbers = new Array(slice.length);
+                for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+                }
+
+                var byteArray = new Uint8Array(byteNumbers);
+
+                byteArrays.push(byteArray);
+            }
+                
+            var blob = new Blob(byteArrays, {type: contentType});
+            return blob;
+        }
+        function clear_db(){
+            if (confirm("Вы точно хотите очистить базу лиц?")) {
+                var http = new XMLHttpRequest();
+                http.open("GET", "/clear_db", true);
+                http.send();
+                http.onload = function() {
+                    if (http.readyState === http.DONE){
+                        console.log(http.status)
+                        if (http.status ==200){
+                            document.getElementById("canvcontent").innerHTML = "База очищена";
+                            var canvas = document.getElementById('canvas');
+                            var context = canvas.getContext('2d');
+                            context.clearRect(0, 0, canvas.width, canvas.height);
+                            $("#canvcontainer").show();
+                            console.log(document.getElementById("canvcontent").innerHTML)
+                        }
+                        else{
+                            document.getElementById("canvcontent").innerHTML = "Ошибка при очистке дб";
+                            $("#canvcontent").show();
+                        }
+                    }
+                }
+            }
+        }
+        function process_face(name){
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            var video = document.getElementById('my_camera');
+            context.drawImage(video, 0, 0, 320, 240);
+            console.log(name)
+            if (name){
+                var target_url = '/add_face';
+            }
+            else{
+                var target_url = '/find_face';
+            }
+
+            var form_elem_name = 'webcam'
+            var img = convertCanvasToImage(canvas)
+            var image_fmt = '';
+           
+            if (img.match(/^data\:image\/(\w+)/))
+                image_fmt = RegExp.$1;
+            else
+                throw "Cannot locate image format in Data URI";
+            console.log(image_fmt)
+            var raw_image_data = img.replace(/^data\:image\/\w+\;base64\,/, '');
+            var http = new XMLHttpRequest();
+            http.open("POST", target_url, true);
+            http.onload = function() {
+                if (http.readyState === http.DONE){
+                    document.getElementById("canvcontent").innerHTML = http.responseText;
+                    var elem = document.getElementById("canvcontainer");
+                    // elem.style.display = "block";
+                    // setTimeout(function(){
+                    //     var elem = document.getElementById("canvcontainer");
+                    //     elem.style.display = "none";//do what you need here
+                    // }, 2000);
+                    $("#canvcontainer").show();
+                    $("#canvcontainer").delay(4000).hide(500);
+                    //context.clearRect(0, 0, canvas.width, canvas.height);
+                    console.log(http.responseText);
+                }
+            }
+            var blob = b64toBlob(raw_image_data,image_fmt)
+		
+            var form = new FormData();
+            form.append( form_elem_name, blob, form_elem_name+"."+image_fmt.replace(/e/, '') );
+            if (name){
+			    form.append('name',name);
+		    }
+            http.send(form);
+            console.log('hui')
+        }
+    </script>
+    <script>
+        var video = document.getElementById('my_camera');
+
+        // Get access to the camera!
+        if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            // Not adding `{ audio: true }` since we only want video now
+            navigator.mediaDevices.getUserMedia({ video: true }).then(function(stream) {
+                //video.src = window.URL.createObjectURL(stream);
+                video.srcObject = stream;
+                video.play();
+            });
+        }
+    </script>
+    <script type="text/javascript" src="js/materialize.min.js"></script>
 </body>
 </html>
 

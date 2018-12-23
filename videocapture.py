@@ -6,7 +6,7 @@ import numpy as np
 from PIL import Image
 from sklearn.preprocessing import normalize
 import io
-from core.face_processor import FaceProcessor, get_vectors, find_closest
+from core.face_processor import FaceProcessor, get_vectors
 from core.database_utils import DataBase
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = '/imgs/'
@@ -18,10 +18,12 @@ db = DataBase()
 def login():
     return render_template('test.html')
 
-@app.route('/imgs/<path:path>')
+@app.route('/js/<path:path>')
 def send_js(path):
-    return send_from_directory('imgs', path)
-
+    return send_from_directory('js', path)
+@app.route('/css/<path:path>')
+def send_css(path):
+    return send_from_directory('css', path)
 @app.route('/webcamjs/<path:path>')
 def send_library(path):
     return send_from_directory('webcamjs', path)
