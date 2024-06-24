@@ -3,7 +3,7 @@ import numpy as np
 
 class DataBase:
     def __init__(self):
-        self.db = postgresql.open('pq://elyha7:5791855A@localhost:5432/elyha7')
+        self.db = postgresql.open('pq://elyha7:5432/elyha7')
     def add_to_db(self,vec,name,check = True):
         """
             Adds new vector to db.
